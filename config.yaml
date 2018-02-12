@@ -1,7 +1,0 @@
-crumb-issuer: '/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,%22:%22,//crumb)'
-api-link: /api/xml
-
-jenkins_from:
-  url: http://xx.xx.xx.xx:8080/
-  login: admin
-  password: password

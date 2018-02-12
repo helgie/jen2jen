@@ -1,5 +1,7 @@
 import os
+import logging
 import time
+
 from lxml import etree
 
 
@@ -22,17 +24,38 @@ class Tiny:
     def get_class(job_element):
         return job_element.attrib['_class']
 
+    # @staticmethod
+    # def plugins2xml(list):
+    #     for plugin in list:
+    #
+
 
     @staticmethod
     def get_url(job_element):
         return job_element.getchildren()[1].text
 
     @staticmethod
-    def backup():
-        folder = 'jobs%s' % time.strftime("%m-%d-%H-%M")
-        print('Yours jobs are going to be stored in: ', os.getcwd())
-        os.mkdir(folder)
-        os.chdir(folder)
+    def get_to_folder(path=''):
+        """
+        Create local jenkins data
+        :return:
+        """
+        if not path:
+            path = os.getcwd() + '/jen2jen_%s' % time.strftime("%d.%m_%H:%M:%S")
+            os.mkdir(path)
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        os.chdir(path)
+        print('Jenkins jobs are being stored in your %s local directory' % path)
+
+    @staticmethod
+    def file2xml(file_path):
+        """
+        Get xml payload from a local file
+        :param file_path:
+        :return:
+        """
+        return open(file_path).read()
 
 
 class JenkinsClass:

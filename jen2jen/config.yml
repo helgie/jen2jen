@@ -1,0 +1,3 @@
+crumb-issuer: /crumbIssuer/api/xml?xpath=concat(//crumbRequestField,%22:%22,//crumb)
+api-link: /api/xml
+create-item: /createItem?name=%s
