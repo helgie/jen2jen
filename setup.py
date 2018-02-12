@@ -35,5 +35,5 @@ setup(
         'Programming Language :: Python :: 3.6'
     ],
     keywords='Jenkins jobs pipelines save clone backup build continuous deployment',
-    install_requires=['lxml', 'pyyaml', 'requests']
+    install_requires=['docopt', 'lxml', 'pyyaml', 'requests']
 )
