@@ -1,3 +1,5 @@
 crumb-issuer: /crumbIssuer/api/xml?xpath=concat(//crumbRequestField,%22:%22,//crumb)
 api-link: /api/xml
+python-api: /api/python?pretty=true
 create-item: /createItem?name=%s
+restart-link: /safeRestart

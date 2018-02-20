@@ -12,7 +12,6 @@ version = re.search(
 with open("README.rst", "rb") as f:
     long_descr = f.read().decode("utf-8")
 
-
 setup(
     name = "jen2jen",
     packages = ["jen2jen"],

@@ -1,38 +1,17 @@
-import json
-import os
-import sys
-import time
 import logging
-from lxml import etree
+import os
 import requests
+import time
+import yaml
+
 from .tiny import Tiny as _h
 from .tiny import JenkinsClass
-import yaml
+from lxml import etree
 
 
 config = yaml.load(open('jen2jen/config.yml'))
 
 logger = logging.getLogger('botomfa')
-
-
-def setup_logger(logger, level=logging.DEBUG):
-    """Logger settings"""
-    stdout_handler = logging.StreamHandler(stream=sys.stdout)
-    stdout_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-    stdout_handler.setLevel(level)
-    logger.addHandler(stdout_handler)
-    logger.setLevel(level)
-
-
-def log_error_and_exit(message):
-    """Log an error message and exit with error"""
-    logger.error(message)
-    sys.exit(1)
-
-def log_info_and_exit(message):
-    """Log an error message and exit with error"""
-    logger.info(message)
-    sys.exit(1)
 
 
 def request(func):
@@ -42,22 +21,45 @@ def request(func):
             if response.text:
                 return response.text
         else:
-            raise Exception(response.status_code, response.reason)
+            print(response.status_code)
+            return response.status_code, response.reason
     return wrapper
 
 
 class Jenkins:
 
-    def __init__(self, url, login, password):
+    def __init__(self, url, login, password, crumb=True):
+        if url.endswith('/'):
+            url = url[:-1]
         self.url = url
         self.login = login
         self.password = password
-        response = requests.get(self.url + config['crumb-issuer'], auth=(self.login, self.password))
-        if response.ok:
-            self.headers = {**dict([response.text.split(':')]), 'Content-Type': 'text/xml'}
-            print(response.status_code)
-        else:
-            raise Exception(response.status_code, response.reason)
+        self.headers = {'Content-Type': 'text/xml'}
+        if crumb:
+            crumb_url = self.url + config['crumb-issuer']
+            response = requests.get(
+                crumb_url,
+                auth=(self.login, self.password)
+            )
+            if response.ok:
+                self.headers.update({**dict([response.text.split(':')])})
+                print(response.status_code)
+            else:
+                print('No crumb received:', response.status_code, response.reason)
+
+    @request
+    def restart(self):
+        return requests.get(
+            self.url + config['restart-link'],
+            auth=(self.login, self.password)
+        )
+
+    # @request
+    def get_info(self):
+        return requests.get(
+                self.url + config['api-link'],
+                auth=(self.login, self.password)
+            )
 
 
 class JenkinsExtractor(Jenkins):
@@ -191,16 +193,39 @@ class JenkinsElevator(Jenkins):
         if job_details['json']:
             raise NotImplementedError('Posting jobs from JSON sources is not supported yet')
         else:
-            job_xml = _h.file2xml(job_details['local_job_folder'] + '/config.xml')
+            if job_details['local_job_folder'].endswith('/config.xml'):
+                job_xml_file_path = job_details['local_job_folder']
+            else:
+                job_xml_file_path = job_details['local_job_folder'] + '/config.xml'
+            job_xml = _h.file2xml(job_xml_file_path)
         if 'remote_job_folder' in job_details.keys():
             remote_folder = job_details['remote_job_folder']
         url = self.url + remote_folder + config['create-item'] % job_details['job_name']
-        print(url, '\n\n\n')
+        print(url, job_xml, '\n\n\n')
         return requests.post(
             url,
             auth=(self.login, self.password),
             data=job_xml,
-            headers=self.headers)
+            headers=self.headers
+        )
+
+    def create_a_job(self, job_name, job_content_path=None, destination=None):
+        if job_content_path:
+            job_content = _h.file2xml(job_content_path)
+        else:
+            job_content = _h.file2xml('jen2jen/folder.xml')
+        if destination:
+            destination = _h.validate_destination(destination)
+            url = self.url + destination + config['create-item'] % job_name
+        else:
+            url = self.url + config['create-item'] % job_name
+
+        return requests.post(
+            url,
+            auth=(self.login, self.password),
+            data=job_content,
+            headers=self.headers
+        )
 
     def process_local_folder(self, folder_name, json=False):
         """

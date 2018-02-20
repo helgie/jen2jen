@@ -2,31 +2,13 @@ import argparse
 import logging
 
 from docopt import docopt
-from .tools import JenkinsElevator, JenkinsExtractor, setup_logger, log_error_and_exit
+from .tools import JenkinsElevator, JenkinsExtractor
 from .tiny import Tiny as _h
+from .tiny import log_error_and_exit, setup_logger
 
 __version__ = "0.2.0"
 
 logger = logging.getLogger('jen2jen')
-
-
-# parser = argparse.ArgumentParser(description="jen2jen tool options")
-# parser.add_argument('mode',
-#                     choices=['fetch', 'submit'],
-#                     help='Select jen2jen mode: "fetch" to fetch the data or "submit" to post the local data to some '
-#                          'jenkins instance')
-# parser.add_argument('--host',
-#                     help="Jenkins host URL", required=True)
-# parser.add_argument('--login',
-#                     help="Jenkins administrator login", required=True)
-# parser.add_argument('--password',
-#                     help="Jenkins administrator password", required=True)
-# parser.add_argument('--local',
-#                     help="Local Jenkins data folder, used to store data and to read data to be submitted",
-#                     default='')
-# parser.add_argument('--version', '-v', '-V',
-#                     action='version',
-#                     version=__version__)
 
 
 def main():
